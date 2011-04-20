@@ -1,4 +1,5 @@
 load "lib/nolate.rb"
+require 'benchmark'
 
 def bench(descr, times)
     start = Time.now.to_f
@@ -31,10 +32,12 @@ TEMPLATE
 
 TIMES = 30_000
 
-bench("empty template"          , TIMES) { nolate("") }
-bench("small constant template" , TIMES) { nolate("nosub") }
-bench("simple substitution"     , TIMES) { nolate("simple <%= 'sub' %>") }
-bench("hash substitution"       , TIMES) { nolate("hash sub <%#x%>") }
-bench("testview2 file template" , TIMES) { nlt(:testview2) }
-bench("big template .nlt", TIMES/5) { @x = 1; nlt(:bigtemplate, :x => 1) }
-bench("big template inline", TIMES/10) { @x = 1; nolate(TEMPLATE, :x => 1) }
+Benchmark.bmbm do |x|
+  x.report("empty template")          { TIMES.times { nolate("") } }
+  x.report("small constant template") { TIMES.times { nolate("nosub") } }
+  x.report("simple substitution")     { TIMES.times { nolate("simple <%= 'sub' %>") } }
+  x.report("hash substitution")       { TIMES.times { nolate("hash sub <%#x%>") } }
+  x.report("testview2 file template") { TIMES.times { nlt(:testview2) } }
+  x.report("big template .nlt") { (TIMES/5).times { @x = 1; nlt(:bigtemplate, :x => 1) } }
+  x.report("big template inline") { (TIMES/10).times { @x = 1; nolate(TEMPLATE, :x => 1) } }
+end
